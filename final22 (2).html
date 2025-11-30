@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Smart Tour — Горные походы Азербайджана</title>
+  <meta name="description" content="Smart Tour — умный подбор горных маршрутов по Азербайджану."/>
+  <style>
+    :root{
+      --bg:#0f1412; --card:#111a17; --alt:#0b1210; --ink:#ecf7f1; --muted:#a9bdb6; --line:#24312c;
+      --emerald:#4ed2aa; --emerald-2:#2aa585; --sky:#88c9f2; --cta:#ff7b52; --pill:#13211c;
+      --shadow:0 14px 40px rgba(0,0,0,.16); --radius:16px; --radius-lg:20px;
+      --hero-fg:#e8f7f1; --hero-overlay:linear-gradient(180deg,rgba(8,12,11,.95) 0%, rgba(8,12,11,.75) 48%, rgba(8,12,11,.1) 78%); /* Усилен оверлей для удаления изображения */
+      --good:#36d399; --warn:#ffd166; --bad:#ff6b6b; --star:#ffc107;
+      --shield:#62e5be;
+    }
+    [data-theme="light"]{
+      --bg:#ffffff; --card:#ffffff; --alt:#f6faf8; --ink:#151816; --muted:#6c7d76; --line:#e6ece9;
+      --emerald:#0F4C3A; --emerald-2:#178764; --sky:#2A7FBA; --cta:#FF6A3D; --pill:#eef6f2;
+      --shadow:0 10px 30px rgba(0,0,0,.08); --hero-fg:#ffffff; --hero-overlay:linear-gradient(180deg,rgba(12,18,16,.95) 0%, rgba(12,18,16,.75) 48%, rgba(12,18,16,.1) 78%);
+      --shield:#1ac58f;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+    img{max-width:100%;display:block}
+    a{color:var(--sky);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{max-width:1200px;margin:0 auto;padding:0 22px}
+    .hide{display:none!important}
+
+    header{position:sticky;top:0;background:rgba(15,20,18,.55);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line);z-index:50}
+    [data-theme="light"] header{background:rgba(255,255,255,.74)}
+    .nav{display:flex;align-items:center;justify-content:space-between;height:70px;gap:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-badge{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--emerald),var(--emerald-2));display:grid;place-items:center;color:#fff;font-weight:900}
+    .brand-title{display:flex;flex-direction:column}
+    .brand-title b{font-weight:900;line-height:1}
+    .brand-title span{font-size:12px;color:var(--muted);margin-top:2px}
+    .menu{display:flex;gap:22px}
+    .menu a{color:var(--ink);font-weight:700;opacity:.92}
+    .menu a.active{color:var(--emerald)}
+    .timebox{display:flex;align-items:center;gap:10px}
+    .dot{width:8px;height:8px;border-radius:50%;background:#4caf50;box-shadow:0 0 8px #4caf50}
+
+    .contact-icons{display:flex;align-items:center;gap:10px}
+    .icon-btn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);transition:.2s transform,.2s background}
+    .icon-btn:hover{transform:translateY(-1px);background:var(--alt)}
+    .icon-btn svg{width:18px;height:18px}
+
+    .toggler{width:84px;height:40px;border-radius:24px;padding:4px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);position:relative;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+    .toggler .ico{width:22px;height:22px;display:grid;place-items:center;margin:0 8px;opacity:.8}
+    .toggler .sun{color:#f7c85a} .toggler .moon{color:#c7d2fe}
+    .toggler .knob{position:absolute;top:4px;left:4px;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #ffffffaa, #f0f0f0aa);border:1px solid rgba(0,0,0,.22);box-shadow:inset 0 2px 6px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.16);transition:left .25s, background .25s, border-color .25s, backdrop-filter .25s}
+    [data-theme="light"] .toggler .knob{border-color:rgba(0,0,0,.18)}
+    [data-theme="dark"] .toggler .knob{left:48px;background:transparent;border-color:rgba(255,255,255,.32);backdrop-filter:saturate(140%) blur(2.5px);box-shadow:0 0 0 1px rgba(255,255,255,.12) inset, 0 2px 10px rgba(0,0,0,.3)}
+
+    .btn,.cta,.btn-outline{position:relative;overflow:hidden;border:none;border-radius:14px;padding:10px 14px;font-weight:800;cursor:pointer;transition:.2s transform,.2s opacity}
+    .cta{background:var(--cta);color:#fff}
+    .btn{background:var(--emerald);color:#fff}
+    .btn-outline{background:transparent;border:1px solid var(--emerald);color:var(--emerald)}
+    .btn:active,.cta:active,.btn-outline:active{transform:translateY(1px)}
+    .btn::after,.cta::after,.btn-outline::after{content:"";position:absolute;left:var(--x,50%);top:var(--y,50%);width:0;height:0;border-radius:50%;background:rgba(255,255,255,.35);transform:translate(-50%,-50%);transition:width .35s,height .35s,opacity .6s;opacity:.6;pointer-events:none}
+    .ripple::after{width:260px;height:260px;opacity:0}
+
+    .hero{
+        background:var(--hero-overlay), var(--alt); /* Удалено фоновое изображение */
+        color:var(--hero-fg)
+    }
+    .hero-wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:32px;align-items:center;padding:84px 0}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#ffffff22;border:1px solid #ffffff33;font-weight:800;font-size:14px;margin-bottom:12px}
+
+    .section{padding:68px 0}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    @media(max-width:1100px){ .grid{grid-template-columns:1fr 1fr} .two{grid-template-columns:1fr} .hero-wrap{grid-template-columns:1fr} }
+    @media(max-width:640px){ .grid{grid-template-columns:1fr} }
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+    
+    /* Стили для фото-карточек в секции "Почему горы" */
+    .photo-panel{padding:20px; /* Увеличен внутренний отступ, так как нет изображения */ overflow:hidden;background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .photo-panel img{display:none} /* Скрываем тег img */
+    .photo-panel:hover img{transform:none}
+    .photo-panel-body{padding:0; padding-top:10px} /* Скорректирован padding */
+
+    .muted{color:var(--muted)}
+
+    .mini-filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .filter{position:relative}
+    .filter .chip{background:var(--pill);border:1px solid var(--line);color:var(--ink);display:flex;gap:6px;align-items:center}
+    .filter select, .filter input[type="range"]{position:absolute; inset:0; opacity:0; cursor:pointer;}
+    .filter .value{font-weight:800}
+    .budget-preview{display:inline-block;min-width:56px;text-align:center}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:transform .2s, box-shadow .2s}
+    .card:hover{transform:translateY(-3px)}
+    .card > img { display: none; } /* Скрываем изображения в Route Card */
+    .card-body{padding:16px;display:flex;flex-direction:column;gap:10px}
+    .card-row{display:grid;grid-template-columns:1fr;gap:10px;align-items:center} /* Изменен на 1fr для Schedule Card */
+    .thumb{display:none} /* Скрываем миниатюры в Schedule Card */
+    .card-row:hover .thumb{transform:none}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;background:var(--pill);color:var(--ink);font-size:12px;font-weight:800;border:1px solid var(--line);cursor:default}
+
+    details.summary-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--alt)}
+    details summary{cursor:pointer;font-weight:900;list-style:none;display:flex;align-items:center;gap:8px}
+    details summary::before{content:"ℹ️"; font-size:16px}
+    details summary::-webkit-details-marker{display:none}
+    .spec{display:grid;grid-template-columns:1fr 2fr;gap:8px;align-items:start}
+    .spec .k{font-weight:800;color:var(--ink)}
+    .spec .v{color:var(--muted)}
+    .mini-gallery{display:none} /* Скрываем мини-галерею */
+
+    .comments{margin-top:10px;display:grid;gap:10px}
+    .comment{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:start;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px}
+    .avatar-icon{width:40px;height:40px;border-radius:50%;background:var(--pill);display:grid;place-items:center;border:1px solid var(--line);font-size:20px} /* Новый стиль для аватара */
+    .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .handle{color:var(--muted);font-size:12px}
+    .rating{display:inline-flex;align-items:center;gap:6px;color:var(--star);font-weight:900}
+    .stars{display:inline-flex;gap:2px}
+    .stars svg{width:14px;height:14px;fill:var(--star)}
+    .comment .actions{display:flex;gap:8px;margin-top:6px}
+    .tag-btn{font-size:12px;border:1px solid var(--line);background:var(--alt);padding:4px 8px;border-radius:8px;cursor:pointer}
+    .tag-btn:hover{background:var(--card)}
+    .comment .photos{display:none} /* Скрываем фотографии в комментариях */
+
+    .safety-list{display:grid;gap:12px}
+    .safety-item{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px;position:relative;overflow:hidden}
+    .safety-item h3{margin:0 0 6px 0}
+    .safety-icon{position:absolute;right:14px;top:14px;opacity:.2;transform:scale(1);animation:float 6s ease-in-out infinite}
+    .safety-icon svg{width:64px;height:64px;fill:var(--shield)}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease, transform .5s ease}
+    .reveal.in{opacity:1;transform:translateY(0)}
+    
+    /* Стили для Стикеров */
+    .sticker-box{
+      width:72px;height:72px;
+      border-radius:50%;
+      background:#fff;
+      box-shadow:0 6px 16px rgba(0,0,0,0.12);
+      border:3px solid #fff;
+      display:grid;place-items:center;
+      margin:0 auto 16px auto;
+      font-size:32px;
+      transform:rotate(-3deg);
+      transition:transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .panel:hover .sticker-box{transform:rotate(3deg) scale(1.1)}
+    .center-text{text-align:center}
+
+    .modal{position:fixed; inset:0; background:#0008; display:none; align-items:center; justify-content:center; padding:20px; z-index:120}
+    .modal.open{display:flex}
+    .dialog{background:var(--card);border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow);max-width:900px;width:100%;padding:18px;color:var(--ink)}
+
+    footer{background:#0b382c;color:#cfe9df;padding:28px 0}
+    footer a{color:#cfe9df}
+    .footgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="brand-badge">ST</div>
+        <div class="brand-title">
+          <b>Smart Tour</b>
+          <span>Внутренний горный туризм Азербайджана</span>
+        </div>
+      </div>
+      <nav class="menu" aria-label="Меню">
+        <a href="#home" data-route>Главная</a>
+        <a href="#routes" data-route>Маршруты</a>
+        <a href="#schedule" data-route>Расписание</a>
+        <a href="#safety" data-route>Безопасность</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="contact-icons" title="Связаться">
+          <a class="icon-btn" href="tel:+994707179908"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 16.92v3a2 2 0 0 1-2.18 2c-9.4-.8-16.74-8.14-17.54-17.54A2 2 0 0 1 4.28 2h3a2 2 0 0 1 2 1.72c.12.86.32 1.7.6 2.5a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.35 6.35l1.27-1.27a2 2 0 0 1 2.11-.45c.8.28 1.64.48 2.5.6A2 2 0 0 1 22 16.92z"/></svg></a>
+          <a class="icon-btn" href="mailto:mammadzade.r.raul@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg></a>
+          <a class="icon-btn" href="https://t.me/smart_tour" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.04 15.47 8.9 19.1c.33 0 .48-.14.65-.31l1.57-1.5 3.25 2.39c.6.33 1.03.16 1.2-.55l2.18-10.25c.22-1-.38-1.39-1.03-1.15L3.7 11.2c-.98.38-.96.94-.17 1.19l3.84 1.2 8.94-5.64c.42-.27.8-.12.49.15"/></svg></a>
+        </div>
+        <div class="timebox" title="Asia/Baku"><span class="dot"></span><span id="azTime" style="font-weight:900">—:—</span></div>
+        <div class="toggler" id="themeToggle" role="button" tabindex="0">
+          <div class="ico sun">☀️</div><div class="ico moon">🌙</div><div class="knob"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="view-home">
+    <section class="hero">
+      <div class="container hero-wrap">
+        <div class="reveal in">
+          <div class="chip">Горы Азербайджана • Smart Tour</div>
+          <h1 style="font-size:48px;line-height:1.05;margin-bottom:10px">
+            Профессиональное планирование похода: маршрут, карта, риски, дата.
+          </h1>
+          <p class="muted" style="color:var(--hero-fg);opacity:.95;font-size:18px">
+            Smart Tour подбирает маршруты, показывает координаты, раскрывает сложность и упрощает запись на удобную дату.
+          </p>
+          <div class="mini-filters" id="miniFilters">
+            <div class="filter"><span class="chip">Регион: <span class="value" id="fRegionLabel">Любой</span></span><select id="fRegion"><option value="">Любой</option><option>Большой Кавказ</option><option>Малый Кавказ</option><option>Талышские горы</option></select></div>
+            <div class="filter"><span class="chip">Сложность: <span class="value" id="fDiffLabel">Любая</span></span><select id="fDiff"><option value="">Любая</option><option>Легко</option><option>Средне</option><option>Сложно</option></select></div>
+            <div class="filter"><span class="chip">Длительность: <span class="value" id="fDurLabel">Любая</span></span><select id="fDur"><option value="">Любая</option><option>1 день</option><option>2-3 дня</option><option>4+ дня</option></select></div>
+            <div class="filter"><span class="chip">Сезон: <span class="value" id="fSeasonLabel">Любой</span></span><select id="fSeason"><option value="">Любой</option><option>Весна</option><option>Лето</option><option>Осень</option><option>Зима</option></select></div>
+            <div class="filter"><span class="chip">Бюджет: <span class="value budget-preview" id="fBudgetLabel">≤ 200</span> ₼</span><input id="fBudget" type="range" min="80" max="600" step="10" value="200"/></div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="reveal" style="text-align:center">Почему выбрать нас?</h2>
+        <p class="reveal muted" style="text-align:center;max-width:600px;margin:0 auto 32px auto">
+          Мы предлагаем уникальный опыт, который выделяет нас среди конкурентов.
+        </p>
+        <div class="grid">
+          <div class="panel reveal center-text">
+            <div class="sticker-box">🎨</div>
+            <b>Красивый интерфейс</b>
+            <p class="muted">Современный и интуитивный дизайн, который делает планирование путешествия приятным.</p>
+          </div>
+          <div class="panel reveal center-text">
+            <div class="sticker-box">📅</div>
+            <b>Бронирование на дату</b>
+            <p class="muted">Выберите удобную дату и забронируйте тур онлайн за минуты без лишних звонков.</p>
+          </div>
+          <div class="panel reveal center-text">
+            <div class="sticker-box">🛡️</div>
+            <b>Безопасность и поддержка</b>
+            <p class="muted">Профессиональные гиды, страховка и поддержка 24/7 на каждом этапе пути.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="background:var(--alt)">
+      <div class="container">
+        <h2 class="reveal" style="text-align:center">Почему Горы? 🌄</h2>
+        <p class="reveal muted" style="margin-bottom:32px; text-align:center; max-width:700px; margin-left:auto; margin-right:auto;">
+          Мы знаем, вы любите море. Но вот три причины, почему стоит хотя бы раз сменить пляж на горную тропу:
+        </p>
+        <div class="grid">
+          <div class="photo-panel reveal">
+            <div class="photo-panel-body" style="padding-top:0">
+              <h3 style="margin-top:0">🔭 Новые Впечатления</h3>
+              <p class="muted">Пляж — это классно, но горы — это приключение. Смените вид горизонта на величественные пики.</p>
+            </div>
+          </div>
+          <div class="photo-panel reveal">
+            <div class="photo-panel-body" style="padding-top:0">
+              <h3 style="margin-top:0">⚡ Энергия и Тонус</h3>
+              <p class="muted">Активный отдых заряжает сильнее ленивого. Горный воздух и движение дадут заряд бодрости на месяц.</p>
+            </div>
+          </div>
+          <div class="photo-panel reveal">
+            <div class="photo-panel-body" style="padding-top:0">
+              <h3 style="margin-top:0">🧘 Полный Дзен</h3>
+              <p class="muted">В горах тишина особенная. Это идеальное место для "цифрового детокса" и единения с природой.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <main id="view-routes" class="hide">
+    <section class="section">
+      <div class="container">
+        <h2 class="reveal">Маршруты</h2>
+        <p class="muted reveal">Откройте “Подробности”, затем “Показать на карте”, чтобы увидеть старт и ориентиры.</p>
+        <div id="routesGrid" class="grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="view-schedule" class="hide">
+    <section class="section">
+      <div class="container">
+        <h2 class="reveal">Расписание</h2>
+        <p class="muted reveal">Выберите маршрут и задайте удобную дату в форме записи.</p>
+        <div class="grid" id="scheduleGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="view-safety" class="hide">
+    <section class="section">
+      <div class="container">
+        <h2 class="reveal">Безопасность походов</h2>
+        <p class="muted reveal">Основываемся на лучших практиках треккинга и альпинизма.</p>
+        <div class="safety-list">
+          <div class="safety-item reveal">
+            <div class="safety-icon"><svg viewBox="0 0 24 24"><path d="M12 2l7 3v5c0 5-3.5 9.5-7 11-3.5-1.5-7-6-7-11V5l7-3z"/></svg></div>
+            <h3>Подготовка</h3>
+            <ul class="muted"><li>Оценивайте форму. Не берите “сложно” без подготовки.</li><li>Знайте набор высоты и риски (обледенение, камнепады).</li></ul>
+          </div>
+          <div class="safety-item reveal">
+            <div class="safety-icon"><svg viewBox="0 0 24 24"><path d="M3 6l9-4 9 4v6c0 5-3 9-9 11C6 21 3 17 3 12V6z"/></svg></div>
+            <h3>Снаряжение</h3>
+            <ul class="muted"><li>Обувь: трекботинки.</li><li>Одежда: многослойность.</li><li>Навигация: карта/трек, фонарь.</li><li>Аптечка: индивидуальная.</li></ul>
+          </div>
+          <div class="safety-item reveal">
+            <div class="safety-icon"><svg viewBox="0 0 24 24"><path d="M2 12l5 5L22 4"/></svg></div>
+            <h3>Группа</h3>
+            <ul class="muted"><li>Минимум вдвоём. Сообщайте план близким.</li><li>Связь нестабильна — офлайн‑карты.</li></ul>
+          </div>
+          <div class="safety-item reveal">
+            <div class="safety-icon"><svg viewBox="0 0 24 24"><path d="M2 7h20M5 7v13M19 7v13M8 20h8"/></svg></div>
+            <h3>Экология</h3>
+            <ul class="muted"><li>Leave No Trace: уносите мусор, идите по тропам.</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footgrid">
+      <div>© Smart Tour — внутренний горный туризм Азербайджана</div>
+      <div style="text-align:right"><a href="#routes" data-route>Маршруты</a> • <a href="#schedule" data-route>Расписание</a> • <a href="#safety" data-route>Безопасность</a></div>
+    </div>
+  </footer>
+
+  <div class="modal" id="mapModal">
+    <div class="dialog">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 id="mapTitle">Локация</h3>
+        <button class="btn-outline" onclick="closeModal('mapModal')">Закрыть</button>
+      </div>
+      <div id="mapWrap" style="border-radius:14px;overflow:hidden;border:1px solid var(--line);height:520px;background:#000"></div>
+      <div class="muted" style="margin-top:8px">OpenStreetMap: маркер — ориентир стартовой точки.</div>
+    </div>
+  </div>
+
+  <div class="modal" id="bookingModal">
+    <div class="dialog" style="max-width:560px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Запись на поход</h3>
+        <button class="btn-outline" onclick="closeModal('bookingModal')">Закрыть</button>
+      </div>
+      <div class="two" style="margin-top:8px">
+        <div><div class="muted">Маршрут</div><input id="bkRoute" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)"></div>
+        <div><div class="muted">Дата</div><input id="bkDate" type="date" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)"></div>
+        <div><div class="muted">Имя</div><input id="bkName" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)"></div>
+        <div><div class="muted">Телефон</div><input id="bkPhone" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)"></div>
+      </div>
+      <div class="muted" style="margin-top:8px">Комментарий</div>
+      <textarea id="bkNote" rows="3" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+        <button class="btn-outline" onclick="closeModal('bookingModal')">Отмена</button>
+        <button class="btn" id="submitBookingBtn">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Базовые маршруты (5)
+    // Все поля img установлены в пустую строку
+    const routesBase = [
+      { 
+        id:1, 
+        title:'Базардюзю (4466 м) — вершина Азербайджана', 
+        region:'Губа-Гусар', 
+        difficulty:'Сложно', 
+        duration:'3-4 дня', 
+        season:'Июль-Сен', 
+        budget:350, 
+        elevation:'4466 м / —', 
+        img:'', 
+        coords:{lat:41.258,lng:47.788,zoom:11}, 
+        rating:4.8 
+      },
+      { 
+        id:2, 
+        title:'Кяпаз (3065 м) — вид на 7 озёр', 
+        region:'Гянджа-Казах', 
+        difficulty:'Легкий', 
+        duration:'1 день', 
+        season:'Май-Окт', 
+        budget:150, 
+        elevation:'3065м / 1200м', 
+        img:'', 
+        coords:{lat:40.407,lng:46.338,zoom:12}, 
+        rating:4.2 
+      },
+      { 
+        id:3, 
+        title:'Туфандаг (4191 м) — священный пик', 
+        region:'Габала', 
+        difficulty:'Средний', 
+        duration:'2 дня', 
+        season:'Июнь-Окт', 
+        budget:220, 
+        elevation:'4191м / 1800м', 
+        img:'', 
+        coords:{lat:40.940,lng:47.882,zoom:12}, 
+        rating:4.4 
+      },
+      { 
+        id:4, 
+        title:'Шахдаг (4243 м) — царь-гора', 
+        region:'Большой Кавказ', 
+        difficulty:'Средне', 
+        duration:'1 день', 
+        season:'Лето', 
+        budget:180, 
+        elevation:'+800 м', 
+        img:'', 
+        coords:{lat:41.275,lng:48.019,zoom:11}, 
+        rating:4.3 
+      },
+      { 
+        id:5, 
+        title:'Бешбармаг — скала желаний', 
+        region:'Хызы', 
+        difficulty:'Легко', 
+        duration:'1 день', 
+        season:'Осень', 
+        budget:110, 
+        elevation:'+260 м', 
+        img:'', 
+        coords:{lat:41.288,lng:49.117,zoom:12}, 
+        rating:4.1 
+      },
+    ];
+    const routesExtra = [
+      // Дополнительные маршруты
+      { 
+        id:103, 
+        title:"Хыналыг", 
+        region:"Губа-Гусар", 
+        difficulty:"Легкий", 
+        duration:"1 день", 
+        season:"Май-Ноя", 
+        budget:140, 
+        elevation:"+500 м", 
+        img:"", 
+        coords:{lat:41.161,lng:48.243,zoom:12}, 
+        rating:4.3 
+      },
+      { 
+        id:104, 
+        title:'Янар Даг — горящая гора', 
+        region:'Большой Кавказ', 
+        difficulty:'Легко', 
+        duration:'1 день', 
+        season:'Зима', 
+        budget:100, 
+        elevation:'+80 м', 
+        img:'', 
+        coords:{lat:40.493,lng:49.887,zoom:12}, 
+        rating:3.9 
+      },
+      { 
+        id:105, 
+        title:'Кельбаджар — минеральные источники', 
+        region:'Малый Кавказ', 
+        difficulty:'Средне', 
+        duration:'2-3 дня', 
+        season:'Лето', 
+        budget:360, 
+        elevation:'+900 м', 
+        img:'', 
+        coords:{lat:40.10,lng:46.05,zoom:11}, 
+        rating:4.6 
+      },
+      { 
+        id:108, 
+        title:'Зангезурский перевал', 
+        region:'Малый Кавказ', 
+        difficulty:'Сложно', 
+        duration:'2-3 дня', 
+        season:'Осень', 
+        budget:390, 
+        elevation:'+1400 м', 
+        img:'', 
+        coords:{lat:39.60,lng:46.20,zoom:11}, 
+        rating:3.8 
+      },
+    ];
+
+    function mockComments(title, rating){
+      // Заменены URL-адреса аватаров на эмодзи-плейсхолдер
+      const base = [
+        {name:'Aydin', handle:'@aydin.hike', avatar:'👤', text:`Отличная локация: ${title}. Рекомендую ранний старт.`, photos:[], rating:Math.max(3.4, Math.min(4.8, rating - 0.2)), helpful:Math.floor(Math.random()*12)+3, notHelpful:Math.floor(Math.random()*3)},
+        {name:'Sevda', handle:'@sevda.out', avatar:'👤', text:'Маршрут без сюрпризов, природа — супер.', photos:[], rating:Math.max(3.4, Math.min(4.8, rating + 0.1)), helpful:Math.floor(Math.random()*10)+2, notHelpful:Math.floor(Math.random()*2)},
+      ];
+      return base;
+    }
+
+    function withDetails(r){
+      // Удалена генерация мини-галереи
+      const gallery = ``; 
+      const spec = `
+        <div class="spec"><div class="k">Регион</div><div class="v">${r.region}</div></div>
+        <div class="spec"><div class="k">Сложность</div><div class="v">${r.difficulty}</div></div>
+        <div class="spec"><div class="k">Длительность</div><div class="v">${r.duration}</div></div>
+        <div class="spec"><div class="k">Сезон</div><div class="v">${r.season}</div></div>
+        <div class="spec"><div class="k">Набор/высота</div><div class="v">${r.elevation||'—'}</div></div>
+        <div class="spec"><div class="k">Бюджет</div><div class="v">до ₼ ${r.budget}</div></div>`;
+      r.details = (r.details||'') + gallery + spec;
+      r.comments = (r.comments||[]).concat(mockComments(r.title, r.rating||4.2));
+      return r;
+    }
+
+    const routes = routesBase.concat(routesExtra).map(withDetails);
+
+    const routesGrid = document.getElementById('routesGrid');
+    const scheduleGrid = document.getElementById('scheduleGrid');
+
+    function renderStars(rating){
+      const stars = [];
+      const full = Math.floor(rating);
+      const frac = rating - full;
+      for(let i=0;i<full;i++) stars.push('<svg viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.853 1.417 8.262L12 19.771 4.583 23.863 6 15.601 0 9.748l8.332-1.73z"/></svg>');
+      if(frac >= 0.25 && frac < 0.75){
+        stars.push('<svg viewBox="0 0 24 24"><defs><linearGradient id="g"><stop offset="50%" stop-color="var(--star)"/><stop offset="50%" stop-color="transparent"/></linearGradient></defs><path fill="url(#g)" d="M12 .587l3.668 7.431L24 9.748l-6 5.853 1.417 8.262L12 19.771 4.583 23.863 6 15.601 0 9.748l8.332-1.73z"/></svg>');
+      } else if (frac >= 0.75) {
+        stars.push('<svg viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.853 1.417 8.262L12 19.771 4.583 23.863 6 15.601 0 9.748l8.332-1.73z"/></svg>');
+      }
+      while(stars.length<5) stars.push('<svg viewBox="0 0 24 24" style="opacity:.25"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.853 1.417 8.262L12 19.771 4.583 23.863 6 15.601 0 9.748l8.332-1.73z"/></svg>');
+      return `<span class="stars">${stars.join('')}</span><span>${rating.toFixed(1)}</span>`;
+    }
+
+    function commentsHtml(list){
+      return `
+        <div class="comments">
+          ${list.map((c,idx)=>`
+            <div class="comment">
+              <div class="avatar-icon">${c.avatar}</div>
+              <div>
+                <div class="meta"><b>${c.name}</b><span class="handle">${c.handle}</span><span class="rating">${renderStars(c.rating)}</span></div>
+                <div>${c.text}</div>
+                <div class="actions">
+                  <button class="tag-btn" data-action="helpful" data-index="${idx}">👍 Полезно (${c.helpful||0})</button>
+                  <button class="tag-btn" data-action="notHelpful" data-index="${idx}">👎 Не полезно (${c.notHelpful||0})</button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          ${list.length>1 ? `<button class="tag-btn" data-action="moreComments">Показать ещё</button>`:''}
+        </div>
+      `;
+    }
+
+    function routeCard(r){
+      return `
+        <div class="card reveal">
+          <div class="card-body">
+            <b style="font-size:18px">${r.title}</b>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <div class="pill">📍 ${r.region}</div>
+              <div class="pill">⚙️ ${r.difficulty}</div>
+              <div class="pill">🕒 ${r.duration}</div>
+              <div class="pill">🍂 ${r.season}</div>
+              <div class="pill">⬆️ ${r.elevation||'—'}</div>
+              <div class="pill">₼ ${r.budget}</div>
+              <div class="pill">⭐ ${r.rating.toFixed(1)}</div>
+            </div>
+            <details class="summary-card" style="margin-top:8px">
+              <summary>Подробности маршрута</summary>
+              <div style="margin-top:10px">${r.details}</div>
+              ${r.comments ? commentsHtml(r.comments) : ''}
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+                <button class="btn" data-action="map" data-id="${r.id}">Показать на карте</button>
+                <button class="btn btn-outline" data-action="book" data-id="${r.id}">Записаться</button>
+              </div>
+            </details>
+          </div>
+        </div>
+      `;
+    }
+
+    function scheduleCard(r){
+      return `
+        <div class="card reveal">
+          <div class="card-body">
+            <div class="card-row" style="grid-template-columns:1fr; gap:10px">
+              <div>
+                <b>${r.title}</b>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+                  <div class="pill">⚙️ ${r.difficulty}</div>
+                  <div class="pill">₼ ${r.budget}</div>
+                  <div class="pill">🕒 ${r.duration}</div>
+                  <div class="pill">⭐ ${r.rating.toFixed(1)}</div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px">
+                  <button class="btn" data-action="book" data-id="${r.id}">Выбрать дату</button>
+                  <button class="btn btn-outline" data-action="map" data-id="${r.id}">Карта</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRoutes(list){ routesGrid.innerHTML = list.map(routeCard).join(''); observeReveals(); }
+    function renderSchedule(list){ scheduleGrid.innerHTML = list.map(scheduleCard).join(''); observeReveals(); }
+
+    const F = { region:"", diff:"", dur:"", season:"", budget:200 };
+    const qs = id=>document.getElementById(id);
+    const fRegion=qs('fRegion'), fDiff=qs('fDiff'), fDur=qs('fDur'), fSeason=qs('fSeason'), fBudget=qs('fBudget');
+    const fRegionLabel=qs('fRegionLabel'), fDiffLabel=qs('fDiffLabel'), fDurLabel=qs('fDurLabel'), fSeasonLabel=qs('fSeasonLabel'), fBudgetLabel=qs('fBudgetLabel');
+
+    function applyFilters(){
+      const filtered = routes.filter(r =>
+        (!F.region || r.region===F.region) &&
+        (!F.diff || r.difficulty===F.diff) &&
+        (!F.dur || r.duration===F.dur) &&
+        (!F.season || r.season===F.season) &&
+        (r.budget <= F.budget)
+      );
+      renderRoutes(filtered);
+      renderSchedule(filtered);
+    }
+    fRegion.addEventListener('change', ()=>{ F.region=fRegion.value; fRegionLabel.textContent = fRegion.value || 'Любой'; applyFilters(); });
+    fDiff.addEventListener('change', ()=>{ F.diff=fDiff.value; fDiffLabel.textContent = fDiff.value || 'Любая'; applyFilters(); });
+    fDur.addEventListener('change', ()=>{ F.dur=fDur.value; fDurLabel.textContent = fDur.value || 'Любая'; applyFilters(); });
+    fSeason.addEventListener('change', ()=>{ F.season=fSeason.value; fSeasonLabel.textContent = fSeason.value || 'Любой'; applyFilters(); });
+    fBudget.addEventListener('input', ()=>{ F.budget=+fBudget.value; fBudgetLabel.textContent = '≤ ' + F.budget; applyFilters(); });
+
+    function startBooking(id){
+      const r = routes.find(x=>x.id===id); if(!r) return;
+      qs('bkRoute').value = r.title;
+      const dateInput = qs('bkDate');
+      dateInput.value = '';
+      const t=new Date(); const yyyy=t.getFullYear(); const mm=String(t.getMonth()+1).padStart(2,'0'); const dd=String(t.getDate()).padStart(2,'0');
+      dateInput.min = `${yyyy}-${mm}-${dd}`;
+      openModal('bookingModal');
+    }
+
+    function openMap(id){
+      const r = routes.find(x=>x.id===id); if(!r) return;
+      qs('mapTitle').textContent = r.title;
+      const {lat,lng}=r.coords;
+      const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.5}%2C${lat-0.35}%2C${lng+0.5}%2C${lat+0.35}&layer=mapnik&marker=${lat}%2C${lng}`;
+      qs('mapWrap').innerHTML = '<iframe title="Map" style="border:0;width:100%;height:100%" src="'+url+'"></iframe>';
+      openModal('mapModal');
+    }
+
+    function openModal(id){ document.getElementById(id).classList.add('open'); }
+    function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+    ['bookingModal','mapModal'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.addEventListener('click',e=>{ if(e.target===el) closeModal(id); });
+    });
+
+    const root=document.documentElement, themeToggle=document.getElementById('themeToggle');
+    function setTheme(m){ root.setAttribute('data-theme',m); localStorage.setItem('smarttour-theme',m); }
+    function initTheme(){ const s=localStorage.getItem('smarttour-theme'); if(s) setTheme(s); else setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); }
+    function toggleTheme(){ setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'); }
+    themeToggle.addEventListener('click', toggleTheme);
+    themeToggle.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleTheme(); }});
+    const azTimeEl=document.getElementById('azTime');
+    function updateAzTime(){
+      try{
+        const t=new Date();
+        const s=new Intl.DateTimeFormat('ru-RU',{timeZone:'Asia/Baku',hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'}).format(t).replace(',', ' •');
+        if(azTimeEl) azTimeEl.textContent=s;
+      }catch(e){ azTimeEl.textContent=new Date().toLocaleString('ru-RU'); }
+    }
+    setInterval(updateAzTime,1000);
+
+    const views={home:document.getElementById('view-home'), routes:document.getElementById('view-routes'), schedule:document.getElementById('view-schedule'), safety:document.getElementById('view-safety')};
+    function setActiveLink(hash){ document.querySelectorAll('[data-route]').forEach(a=>a.classList.remove('active')); const l=document.querySelector(`[href="${hash}"][data-route]`); if(l) l.classList.add('active'); }
+    function showView(name){ Object.values(views).forEach(v=>v.classList.add('hide')); (views[name]||views.home).classList.remove('hide'); window.scrollTo({top:0,behavior:'smooth'}); observeReveals(); }
+    function handleRoute(){ const hash=(location.hash||'#home').replace('#',''); setActiveLink('#'+hash); showView(hash); if(hash==='routes'||hash==='schedule'){ applyFilters(); } }
+    window.addEventListener('hashchange', handleRoute);
+
+    document.addEventListener('click', (e)=>{
+      const trg = e.target.closest('button,.btn,.cta,.btn-outline,a[data-route]'); 
+      if(trg && trg.matches('button,.btn,.cta,.btn-outline')){
+        const rect = trg.getBoundingClientRect(); trg.style.setProperty('--x',(e.clientX-rect.left)+'px'); trg.style.setProperty('--y',(e.clientY-rect.top)+'px');
+        trg.classList.remove('ripple'); void trg.offsetWidth; trg.classList.add('ripple'); setTimeout(()=>trg.classList.remove('ripple'),400);
+      }
+      if(!trg) return;
+      const id = parseInt(trg.getAttribute('data-id'),10); 
+      const action = trg.getAttribute('data-action');
+      if(action==='book') startBooking(id);
+      if(action==='map') openMap(id);
+      if(trg.dataset.action==='moreComments'){ alert('Загружаем дополнительные отзывы...'); }
+      if(trg.dataset.action==='helpful' || trg.dataset.action==='notHelpful'){
+        trg.textContent = trg.textContent.replace(/\d+/, m=>parseInt(m)+1);
+      }
+    });
+
+    function observeReveals(){ const els=document.querySelectorAll('.reveal'); const io=new IntersectionObserver(es=>{ es.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} }); },{threshold:.08}); els.forEach(el=>{ if(!el.classList.contains('in')) io.observe(el); }); }
+
+    function init(){ initTheme(); updateAzTime(); applyFilters(); observeReveals(); handleRoute(); }
+    init();
+
+    document.getElementById('submitBookingBtn').addEventListener('click', ()=>{
+      const route = document.getElementById('bkRoute').value.trim();
+      const date = document.getElementById('bkDate').value;
+      const name = document.getElementById('bkName').value.trim();
+      const phone = document.getElementById('bkPhone').value.trim();
+      if(!route || !date || !name || !phone){ alert('Заполните маршрут, дату, имя и телефон.'); return; }
+      closeModal('bookingModal'); setTimeout(()=>alert(`Заявка отправлена:\nМаршрут: ${route}\nДата: ${date}\nИмя: ${name}\nТелефон: ${phone}`),120);
+    });
+  </script>
+</body>
+</html>
